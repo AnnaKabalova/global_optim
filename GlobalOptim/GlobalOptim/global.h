@@ -8,37 +8,41 @@ struct node{
 	node* prev;
 };
 
+
 class list {
 public:
 	node *head=new node;
-	node *tail=new node;
-	~list(){ while (head) { tail = head->next; delete head; head = tail; } }
+	~list(){ while (head) { node* tmp = head->next; delete head; head = tmp; } }
 
 	list(double _a) {
 		head->x = _a;
 		head->f = f(_a);
 		head->R = 0;
 		head->prev = 0;
-		head->next = tail;
+		head->next = 0;
+		}
+	void addtail(double _val, double val, double _r) {
+		node *tmp = new node;
+		node *tmp1 = search(_val);
+		node *tmp2 = tmp1->next;
+		tmp->x = val;
+		tmp->f = f(val);
+		tmp1->next = tmp;
+		tmp->prev = tmp1;
+		tmp->next = tmp2;
+		double m = mm(_r);
+		Rr(tmp, _r);
 	}
-
-	list(double _b, double _r) {
-		tail->x = _b;
-		tail->f = f(_b);
-		//double m = mm(_r);
-		//tail->R = tail->R = m*(tail->x - tail->prev->x - 1) + (((tail->f - tail->prev->f - 1)*(tail->f - tail->prev->f - 1)) / (m*(tail->x - tail->prev->x))) - 2 * (tail->f + tail->prev->f);
-		tail->prev = head;
-		tail->next = 0;
-	}
-	void add(double _val, double val){
+	void add(node* tmp1, node* curr, double val, double _r){
 		node* tmp = new node;
 		tmp->x = val;
 		tmp->f = f(val);
-		node* srch = search(_val);
-		node* tmp1 = srch->next;
-		srch->next = tmp;
-		tmp->prev = srch;
-		tmp->next = tmp1;	
+		tmp1->next = tmp;
+		tmp->prev = tmp1;
+		tmp->next = curr;
+		curr->prev = tmp;
+		double m = mm(_r);
+		Rr(tmp, _r);
 	}
 	node* search(double _val){
 		node *tmp1 = head;
@@ -46,17 +50,26 @@ public:
 			tmp1 = tmp1->next;
 		return tmp1; 
 	}
+	void searchmin() {
+		node *tmp1 = head->next;
+		node *min = head;
+		while (tmp1 != 0) {
+			if (tmp1->f < min->f)
+				min = tmp1;
+			tmp1 = tmp1->next;
+		}
+		printcurr(min);
+	}
+
 	void print() {
 		node*tmp = head;
-		while (tmp != 0) {
-			printf("x = %lf y = %lf \n", tmp->x, tmp->f);
+		while ( tmp!=0 ){
+			printf("x = %lf y = %lf R = %lf \n", tmp->x, tmp->f, tmp->R);
 			tmp = tmp->next;	
-		}
-	
+		 }	
 	}
-	void printcurr(double _x) {
-		node* tmp = search(_x);
-		printf("x = %lf y = %lf \n", tmp->x, tmp->f);	
+	void printcurr(node *A) {
+		printf("min x = %lf min y = %lf \n", A->x, A->f);	
 	}
 	double f(double _val) { return (_val)*(_val); }
 	double mm(double r){
@@ -65,12 +78,19 @@ public:
 		double m = -1000;
 		node*t1 = head;
 		node*t2 = head->next;
-		M = abs((t1->f - t2->f - 1) / (t1->x - t2->x - 1));
+		M = fabs((t1->f - t2->f - 1) / (t1->x - t2->x - 1));
 		t1 = t1->next;
 		t2 = t2->next; 
+		if (t2 == 0) {
+			if (M > 0)
+				return m = M*r;
+			if (M == 0)
+				return m = 1;
+		
+		}
 		double tmp = 0;
 		while (t2!=0) {
-			M1 = abs((t1->f - t2->f - 1) / (t1->x - t2->x - 1));
+			M1 = fabs((t1->f - t2->f - 1) / (t1->x - t2->x - 1));
 			tmp = fmax(M, M1);
 			if (tmp > m)
 				m = tmp;
@@ -80,33 +100,39 @@ public:
 		}
 		if (m > 0)
 			return m*r;
-		if (m = 0)
+		if (m == 0)
 			return 1;
 	}
 		void Rr(node* tmp, double r) {	
 			double m = mm(r);
 			tmp->R = m*(tmp->x - tmp->prev->x - 1) + (((tmp->f - tmp->prev->f - 1)*(tmp->f - tmp->prev->f - 1)) / (m*(tmp->x - tmp->prev->x))) - 2 * (tmp->f + tmp->prev->f);
-			tmp->next->R = m*(tmp->next->x - tmp->x - 1) + (((tmp->next->f - tmp->f - 1)*(tmp->next->f - tmp->f - 1)) / (m*(tmp->next->x - tmp->x))) - 2 * (tmp->next->f + tmp->f);
+			if (tmp->next!=0)
+				tmp->next->R = m*(tmp->next->x - tmp->x - 1) + (((tmp->next->f - tmp->f - 1)*(tmp->next->f - tmp->f - 1)) / (m*(tmp->next->x - tmp->x))) - 2 * (tmp->next->f + tmp->f);
 	}
 		node* searchmaxR(){
 			node* tmp = head->next;
 			node* maxR = new node;
-			while (tmp != 0){
+ 			while (tmp != 0){
 				if (tmp->R > maxR->R)
 					maxR = tmp;
 				tmp = tmp->next;
 			}
 			return maxR;
 		}
-		void insert(double r, double e){
+		bool insert(double _r, double e){
 			node *tmp=new node;
+			node *tmp1 = new node;
 			tmp = searchmaxR();
-			double m = mm(r);
-			double xx = (1 / 2)*(tmp->x + tmp->prev->x) - ((f(tmp->x) - f(tmp->prev->x)) / (2 * m));
-			add(tmp->prev->x, xx);
+			tmp1 = tmp->prev;
+			double m = mm(_r);
+			double xx = 0.5*(tmp->x + tmp->prev->x) - ((tmp->f - tmp->prev->f) / (2 * m));
+			add(tmp1,tmp, xx, _r);
+			//Rr(tmp, _r);
+			bool flag = epsilon(tmp1->next, e);
+			return flag;
 		}
 		bool epsilon(node * A, double e) {
-			if ((A->x - A->prev->x) < e || (A->next->x - A->x) < e)
+			if (((A->x - A->prev->x) > e) || ((A->next->x - A->x) > e))
 				return true;
 			else return false;
 		}

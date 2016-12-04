@@ -13,27 +13,27 @@ int main() {
 	scanf("%lf", &r);
 	printf("input N \n");
 	scanf("%i", &N);
-	double e = 0.0000001;
+	double e = 0.0000000001;
 	int i = 1;
-	double a = -10;
+	double a = -2;
 	double b = 10;
-	list head(a);
-	head.add(a, b);
+	list A(a);
+	
+	A.addtail(a, b, r);
+	A.print();
+	printf(" \n");
+	printf(" \n");
+	bool flag = true;
 	while (i < N) {
-		head.insert(r, e);
-	
-	
+	flag = A.insert(r, e);
+	A.print();
+	printf(" \n");
+	printf(" \n");
+	if (flag == true)
+	i++;
+	else break;
 	}
-	//list tail(b,r);
-	//list A(a);
-	//list B(b, r);
- 	head.print();
-	//	node *A = createlist(a);
-	//node *B = CreateEndList(b, r);
-
-
-	
-
+	A.searchmin();
 	return 0;
 
 }
